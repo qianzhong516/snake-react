@@ -29,20 +29,20 @@ function App() {
   const timerId = useRef();
 
   function onSnakeOutOfBounds() {
-    const tail = snake.at(-1);
+    const head = snake.at(-1);
     if (
-      tail[0] >= Math.floor(100 / RATIO) ||
-      tail[1] >= Math.floor(100 / RATIO) ||
-      tail[0] < 0 ||
-      tail[1] < 0
+      head[0] >= Math.floor(100 / RATIO) ||
+      head[1] >= Math.floor(100 / RATIO) ||
+      head[0] < 0 ||
+      head[1] < 0
     ) {
-      alert('Game over');
       gameOver();
     }
   }
 
   // reset the game once it's over to prevent out-of-boundary screen
   function gameOver() {
+    alert('Game over');
     clearInterval(timerId.current);
     setSnake([
       [1, 1],
@@ -54,11 +54,11 @@ function App() {
 
   function onSnakeEats() {
     // assuming the snake moves to the right, the moment it touches the food (after moveSnake was invoked):
-    // [H,x,x,T,x] -> [x,H,x,x,T]
-    // a new node needs to be added to the head but its value doesn't matter,
+    // [T,x,x,H,x] -> [x,T,x,x,H]
+    // a new node needs to be added to the tail but its value doesn't matter,
     // because whatever the value is, it will be discarded in the next move.
-    const tail = snake.at(-1);
-    if (tail[0] === food[0] && tail[1] === food[1]) {
+    const head = snake.at(-1);
+    if (head[0] === food[0] && head[1] === food[1]) {
       const snakeCopy = [...snake];
       snakeCopy.unshift([]);
       setSnake(snakeCopy);
@@ -68,10 +68,10 @@ function App() {
 
   function onSnakeCollapsed() {
     const snakeCopy = [...snake];
-    let tail = snakeCopy.at(-1);
-    snakeCopy.pop(); // exclude the tail
+    let head = snakeCopy.at(-1);
+    snakeCopy.pop(); // exclude the head
     snakeCopy.forEach((dot) => {
-      if (tail[0] == dot[0] && tail[1] == dot[1]) {
+      if (head[0] == dot[0] && head[1] == dot[1]) {
         gameOver();
       }
     });
@@ -79,27 +79,27 @@ function App() {
 
   function moveSnake() {
     const snakeCopy = [...snake];
-    let tail = snakeCopy.at(-1);
-    const [left, top] = tail;
+    let head = snakeCopy.at(-1);
+    const [left, top] = head;
 
     switch (dir) {
       case DIRECTION.RIGHT:
-        tail = [left + 1, top];
+        head = [left + 1, top];
         break;
       case DIRECTION.LEFT:
-        tail = [left - 1, top];
+        head = [left - 1, top];
         break;
       case DIRECTION.UP:
-        tail = [left, top - 1];
+        head = [left, top - 1];
         break;
       case DIRECTION.DOWN:
-        tail = [left, top + 1];
+        head = [left, top + 1];
         break;
       default:
         throw new Error('No such direction!');
     }
-    // based on the snake's rendering sequence [H,x,x,T,x] -> [x,H,x,x,T] (move to right)
-    snakeCopy.push(tail);
+    // based on the snake's rendering sequence [T,x,x,H,x] -> [x,T,x,x,H] (move to right)
+    snakeCopy.push(head);
     snakeCopy.shift();
 
     setSnake(snakeCopy);
@@ -109,7 +109,7 @@ function App() {
     timerId.current = setInterval(moveSnake, speed);
     return () => clearInterval(timerId.current);
     // `snake`, `dir` are important dependencies to prevent stale states from being used in `moveSnake()`
-  }, [snake, dir, speed, gameOver]);
+  }, [snake, dir, speed]);
 
   useEffect(() => {
     onSnakeEats();
